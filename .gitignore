@@ -1,0 +1,9 @@
+sender
+receiver
+
+*.o
+*.out
+
+.vscode/
+
+build/

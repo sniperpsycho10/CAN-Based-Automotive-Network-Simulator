@@ -60,20 +60,52 @@ void printDTCs(int storedDTCs[],
     printf("====================\n\n");
 }
 
-void sendDTCResponse(int socketfd,
-                     int dtc)
+void sendDTCResponse(
+    int socketfd,
+    int dtc)
 {
     struct can_frame response;
 
     response.can_id = 0x701;
-    response.can_dlc = 1;
+    response.can_dlc = 3;
 
-    response.data[0] = dtc;
+    response.data[0] = 0x59;
+    response.data[1] = 0x01;
+    response.data[2] = dtc;
 
-    write(socketfd,
-          &response,
-          sizeof(response));
+    write(
+        socketfd,
+        &response,
+        sizeof(response)
+    );
 }
+int currentSpeed = 0;
+int currentTemp = 0;
+int currentBattery = 0;
+
+void sendDataResponse(
+    int socketfd,
+    int didHigh,
+    int didLow,
+    int value)
+{
+    struct can_frame response;
+
+    response.can_id = 0x701;
+    response.can_dlc = 4;
+
+    response.data[0] = 0x62;
+    response.data[1] = didHigh;
+    response.data[2] = didLow;
+    response.data[3] = value;
+
+    write(
+        socketfd,
+        &response,
+        sizeof(response)
+    );
+}
+
 
 int main()
 {
@@ -151,13 +183,14 @@ int main()
         {
             case 0x500:
 
+                currentSpeed = frame.data[0];
                 printf("[Dashboard] Speed: %d km/h\n",
                        frame.data[0]);
 
                 break;
 
             case 0x501:
-
+                currentTemp = frame.data[0];   
                 printf("[Dashboard] Temp: %d C\n",
                        frame.data[0]);
 
@@ -175,7 +208,7 @@ int main()
                 break;
 
             case 0x502:
-
+                currentBattery = frame.data[0];
                 printf("[Dashboard] Battery: %d%%\n",
                        frame.data[0]);
 
@@ -192,16 +225,71 @@ int main()
 
                 break;
 
-            case 0x700:
+          case 0x700:
 
-                printf("\nDiagnostic Request Received\n");
+                /* UDS 0x19 Read DTC */
 
-                for(int i = 0; i < dtcCount; i++)
+                if(frame.data[0] == 0x19 &&
+                frame.data[1] == 0x01)
                 {
-                    sendDTCResponse(
-                        s,
-                        storedDTCs[i]
+                    printf(
+                        "\nUDS Read DTC Request Received\n"
                     );
+
+                    for(int i = 0;
+                        i < dtcCount;
+                        i++)
+                    {
+                        sendDTCResponse(
+                            s,
+                            storedDTCs[i]
+                        );
+                    }
+                }
+
+                /* UDS 0x22 Read Data By Identifier */
+
+                else if(frame.data[0] == 0x22)
+                {
+                    int didHigh = frame.data[1];
+                    int didLow  = frame.data[2];
+
+                    printf(
+                        "\nUDS Read Data Request Received\n"
+                    );
+
+                    if(didHigh == 0xF1 &&
+                    didLow  == 0x01)
+                    {
+                        sendDataResponse(
+                            s,
+                            0xF1,
+                            0x01,
+                            currentSpeed
+                        );
+                    }
+
+                    else if(didHigh == 0xF1 &&
+                            didLow  == 0x02)
+                    {
+                        sendDataResponse(
+                            s,
+                            0xF1,
+                            0x02,
+                            currentTemp
+                        );
+                    }
+
+                    else if(didHigh == 0xF1 &&
+                            didLow  == 0x03)
+                    {
+                        sendDataResponse(
+                            s,
+                            0xF1,
+                            0x03,
+                            currentBattery
+                        );
+                    }
                 }
 
                 break;

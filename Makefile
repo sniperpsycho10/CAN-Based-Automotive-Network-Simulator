@@ -6,6 +6,7 @@ all:
 	gcc src/diagnostic_tool.c -o diagnostic_tool
 	gcc src/dtc_reader.c -o dtc_reader
 	gcc src/gateway_ecu.c -o gateway_ecu
+	gcc src/uds_scanner.c -o uds_scanner
 
 clean:
-	rm -f speed_sender temp_sender battery_sender dashboard_receiver diagnostic_tool dtc_reader gateway_ecu
+	rm -f speed_sender temp_sender battery_sender dashboard_receiver diagnostic_tool dtc_reader gateway_ecu uds_scanner

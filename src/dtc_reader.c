@@ -8,6 +8,8 @@
 #include <net/if.h>
 #include <sys/ioctl.h>
 
+#include "dtc.h"
+
 int main()
 {
     int s;
@@ -25,30 +27,49 @@ int main()
     addr.can_family = AF_CAN;
     addr.can_ifindex = ifr.ifr_ifindex;
 
-    bind(s,
-         (struct sockaddr *)&addr,
-         sizeof(addr));
+    bind(
+        s,
+        (struct sockaddr *)&addr,
+        sizeof(addr)
+    );
 
-    printf("Waiting for DTC responses...\n");
+    printf(
+        "Waiting for UDS DTC responses...\n"
+    );
 
     while(1)
     {
-        read(s,
-             &frame,
-             sizeof(frame));
+        read(
+            s,
+            &frame,
+            sizeof(frame)
+        );
 
         if(frame.can_id == 0x701)
         {
-            switch(frame.data[0])
+            if(frame.data[0] == 0x59)
             {
-                case 1:
-                    printf("P001 Engine Overheat\n");
-                    break;
+                switch(frame.data[2])
+                {
+                    case DTC_ENGINE_OVERHEAT:
 
-                case 2:
-                    printf("P002 Low Battery\n");
-                    break;
+                        printf(
+                            "P001 - Engine Overheat\n"
+                        );
+
+                        break;
+
+                    case DTC_LOW_BATTERY:
+
+                        printf(
+                            "P002 - Low Battery\n"
+                        );
+
+                        break;
+                }
             }
         }
     }
+
+    return 0;
 }

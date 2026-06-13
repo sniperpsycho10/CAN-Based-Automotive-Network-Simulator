@@ -25,20 +25,27 @@ int main()
     addr.can_family = AF_CAN;
     addr.can_ifindex = ifr.ifr_ifindex;
 
-    bind(s,
-         (struct sockaddr *)&addr,
-         sizeof(addr));
+    bind(
+        s,
+        (struct sockaddr *)&addr,
+        sizeof(addr)
+    );
 
     frame.can_id = 0x700;
-    frame.can_dlc = 1;
+    frame.can_dlc = 2;
 
-    frame.data[0] = 1;
+    frame.data[0] = 0x19;
+    frame.data[1] = 0x01;
 
-    write(s,
-          &frame,
-          sizeof(frame));
+    write(
+        s,
+        &frame,
+        sizeof(frame)
+    );
 
-    printf("Diagnostic Request Sent\n");
+    printf(
+        "UDS Request Sent: 0x19 0x01\n"
+    );
 
     return 0;
 }

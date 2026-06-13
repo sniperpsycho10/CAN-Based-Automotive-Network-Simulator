@@ -60,6 +60,21 @@ void printDTCs(int storedDTCs[],
     printf("====================\n\n");
 }
 
+void sendDTCResponse(int socketfd,
+                     int dtc)
+{
+    struct can_frame response;
+
+    response.can_id = 0x701;
+    response.can_dlc = 1;
+
+    response.data[0] = dtc;
+
+    write(socketfd,
+          &response,
+          sizeof(response));
+}
+
 int main()
 {
     int s;
@@ -111,14 +126,14 @@ int main()
 
         switch(frame.can_id)
         {
-            case 0x100:
+            case 0x500:
 
                 printf("[Dashboard] Speed: %d km/h\n",
                        frame.data[0]);
 
                 break;
 
-            case 0x101:
+            case 0x501:
 
                 printf("[Dashboard] Temp: %d C\n",
                        frame.data[0]);
@@ -136,7 +151,7 @@ int main()
 
                 break;
 
-            case 0x102:
+            case 0x502:
 
                 printf("[Dashboard] Battery: %d%%\n",
                        frame.data[0]);
@@ -153,6 +168,21 @@ int main()
                 }
 
                 break;
+
+            case 0x700:
+
+                printf("\nDiagnostic Request Received\n");
+
+                for(int i = 0; i < dtcCount; i++)
+                {
+                    sendDTCResponse(
+                        s,
+                        storedDTCs[i]
+                    );
+                }
+
+                break;
+
 
             default:
 

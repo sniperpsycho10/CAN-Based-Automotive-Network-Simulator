@@ -82,6 +82,7 @@ int main()
     struct sockaddr_can addr;
     struct ifreq ifr;
     struct can_frame frame;
+    struct can_filter filters[4];
 
     int storedDTCs[10];
 
@@ -108,6 +109,27 @@ int main()
     addr.can_family = AF_CAN;
     addr.can_ifindex = ifr.ifr_ifindex;
 
+    filters[0].can_id = 0x500;
+    filters[0].can_mask = CAN_SFF_MASK;
+
+    filters[1].can_id = 0x501;
+    filters[1].can_mask = CAN_SFF_MASK;
+
+    filters[2].can_id = 0x502;
+    filters[2].can_mask = CAN_SFF_MASK;
+
+    filters[3].can_id = 0x700;
+    filters[3].can_mask = CAN_SFF_MASK;
+
+    setsockopt(
+        s,
+        SOL_CAN_RAW,
+        CAN_RAW_FILTER,
+        &filters,
+        sizeof(filters)
+    );
+
+
     if(bind(s,
             (struct sockaddr *)&addr,
             sizeof(addr)) < 0)
@@ -116,6 +138,7 @@ int main()
 
         return 1;
     }
+
 
     printf("\nDashboard ECU Started\n");
     printf("Listening on CAN Bus...\n\n");

@@ -52,3 +52,31 @@ This project is being developed incrementally to emulate real-world automotive E
 
 ```bash
 make
+
+## Current Architecture
+
+```text
+Speed ECU --------\
+                   \
+Temp ECU ----------> Dashboard ECU
+                   /
+Battery ECU -------/
+```
+
+## Features
+
+- Multi-ECU CAN Communication
+- Speed ECU
+- Temperature ECU
+- Battery ECU
+- Dashboard ECU
+- Diagnostic Trouble Code (DTC) Storage
+- Engine Overheat Detection
+- Low Battery Detection
+
+## Implemented DTCs
+
+| Code | Description |
+|--------|------------|
+| P001 | Engine Overheat |
+| P002 | Low Battery |
